@@ -1,11 +1,18 @@
 package pl.sii;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -35,17 +42,33 @@ public class PopularWordsTest {
 
         result.forEach((key, value) -> {
             BigDecimal valueUsagePercentage = calculatePercentage(value, totalFrequencyInAResult);
-            BigDecimal kilgarriffUsagePercentage = calculatePercentage(wordsFrequencyListCreatedByAdamKilgarriff.get(key), totalFrequencyByKilgarriff);
+            Long wordFrequencyFromAdamKilgarriffList = wordsFrequencyListCreatedByAdamKilgarriff.get(key);
+            if (wordFrequencyFromAdamKilgarriffList == null) {
+            	wordFrequencyFromAdamKilgarriffList = Long.valueOf(0);
+            }
+            BigDecimal kilgarriffUsagePercentage = calculatePercentage(wordFrequencyFromAdamKilgarriffList, totalFrequencyByKilgarriff);
             BigDecimal diff = kilgarriffUsagePercentage.subtract(valueUsagePercentage);
             System.out.println(key + "," + valueUsagePercentage + "%," + kilgarriffUsagePercentage + "%," + (new BigDecimal(0.5).compareTo(diff.abs()) > 0) + " " + diff);
         });
     }
 
     private BigDecimal calculatePercentage(double obtained, double total) {
-        return new BigDecimal(obtained * 100 / total).setScale(4, RoundingMode.HALF_UP);
+        return BigDecimal.valueOf(obtained * 100 / total).setScale(4, RoundingMode.HALF_UP);
     }
 
     private Map<String, Long> getWordsFrequencyListCreatedByAdamKilgarriff() {
-        throw new NotImplementedException("TODO implementation");
+    	Map<String, Long> result = new HashMap<String, Long>();
+    	List<String> lines;
+    	try {
+			lines = Files.readAllLines((Path.of("src/test/resources/all.num")));
+			for (String line: lines) {
+				String[] lineArray = line.split(" ");
+				Long occurences = Long.parseLong(lineArray[0]);
+				result.put(lineArray[1], occurences);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    	return result;
     }
 }
